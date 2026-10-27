@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#224488" />
+  <title>미디어 리터러시 퀴즈 | 무료 GitHub Pages 예제</title>
+  <style>
+    :root { color-scheme: light; font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height:100vh; background: #f1f4fa; color:#18243a; }
+    main { max-width: 720px; margin: 36px auto; padding: 0 16px 40px; }
+    .panel { background:white; padding: 32px; border-radius:22px; box-shadow:0 10px 30px rgba(10,35,72,.09); }
+    h1 { font-size:clamp(1.7rem,4vw,2.2rem); margin:0 0 8px; }
+    .sub { color:#536177; font-size:1rem; margin:0 0 24px; }
+    .eyebrow { color:#2d568d; font-weight:800; margin-bottom:12px; }
+    h2 { font-size:clamp(1.35rem,3vw,1.7rem); line-height:1.55; margin:0 0 22px; }
+    #answers { display:grid; gap:12px; }
+    button { font:inherit; cursor:pointer; }
+    .choice { text-align:left; padding:17px 18px; border:2px solid #d8e1f1; background:white; border-radius:13px; font-size:1.12rem; line-height:1.5; }
+    .choice:hover:not(:disabled), .choice:focus-visible { border-color:#3869c6; background:#f2f7ff; }
+    .choice:disabled { cursor:default; opacity:1; }
+    .choice.good { border-color:#138454; background:#e8f8ee; }
+    .choice.bad { border-color:#cb4747; background:#fff0f0; }
+    #feedback { min-height: 58px; font-size:1.06rem; line-height:1.6; margin:18px 0 4px; }
+    .next { display:inline-block; border:0; background:#235ab3; color:white; font-weight:700; padding:15px 24px; border-radius:12px; font-size:1.1rem; margin-top:10px; }
+    .next:hover { background:#184486; }
+    .next[hidden], #play[hidden], #result[hidden] { display:none; }
+    .score { font-size: 2rem; font-weight:800; color:#235ab3; }
+    footer { color:#687487; font-size:.9rem; line-height:1.55; margin:18px 3px; }
+    @media(max-width:480px){ main{margin:16px auto} .panel{padding:21px} .choice{font-size:1.05rem} }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="panel">
+      <h1>🔎 미디어 리터러시 퀴즈</h1>
+      <p class="sub">GitHub Pages에 올리는 연습용 퀴즈입니다. 총 4문항 · 회원가입 불필요</p>
+      <section id="play" aria-live="polite">
+        <div id="progress" class="eyebrow"></div>
+        <h2 id="question"></h2>
+        <div id="answers"></div>
+        <p id="feedback" role="status"></p>
+        <button id="next" class="next" hidden>다음 문제 →</button>
+      </section>
+      <section id="result" hidden aria-live="polite">
+        <h2>퀴즈 완료!</h2>
+        <p class="score" id="score"></p>
+        <p>이 예제는 점수를 서버에 저장하거나 전송하지 않습니다.</p>
+        <button id="retry" class="next">다시 풀기</button>
+      </section>
+    </div>
+    <footer>교사용 배포 연습 파일 · HTML, CSS, JavaScript가 이 파일 하나에 들어 있습니다.</footer>
+  </main>
+  <script>
+    // 문제를 바꾸고 싶으면 아래 question / answers / correct / explanation 내용을 수정하세요.
+    const quiz = [
+      {
+        question: '인터넷에서 놀라운 뉴스를 보았습니다. 가장 먼저 무엇을 해야 할까요?',
+        answers: ['바로 친구에게 공유한다', '출처와 날짜를 확인한다', '제목만 읽고 믿는다', '조회수가 많으면 믿는다'],
+        correct: 1,
+        explanation: '기사의 출처와 작성 날짜를 확인하면 오래되었거나 잘못된 정보인지 판단하는 데 도움이 됩니다.'
+      },
+      {
+        question: '검색 결과가 사람마다 다른 이유 중 하나는 무엇일까요?',
+        answers: ['모든 사람이 같은 화면을 본다', '인터넷이 매일 무작위로 바뀐다', '검색·시청 기록 등이 영향을 준다', '검색 결과에는 알고리즘이 없다'],
+        correct: 2,
+        explanation: '검색 및 추천 서비스는 이용자의 활동 정보 등을 활용해 결과를 다르게 보여줄 수 있습니다.'
+      },
+      {
+        question: '생성형 AI가 자신 있게 설명한 내용이라면 어떻게 해야 할까요?',
+        answers: ['언제나 사실이라고 생각한다', '내용이 길면 믿는다', '다른 신뢰할 만한 자료와 대조한다', '출처 확인은 필요 없다'],
+        correct: 2,
+        explanation: 'AI가 그럴듯하지만 사실과 다른 내용을 만들 수 있으므로 중요한 정보는 교차 검증해야 합니다.'
+      },
+      {
+        question: '친구 사진을 인터넷에 올리기 전 가장 적절한 행동은 무엇일까요?',
+        answers: ['친구의 동의를 구한다', '사진을 작게 줄이면 된다', '내 계정이므로 마음대로 올린다', '댓글을 꺼두면 동의가 필요 없다'],
+        correct: 0,
+        explanation: '사진 속 당사자의 개인정보와 초상권을 존중하기 위해 게시 전 동의를 구하는 것이 좋습니다.'
+      }
+    ];
+    let index = 0, points = 0, answered = false;
+    const $ = (id) => document.getElementById(id);
+    function render() {
+      answered = false;
+      const item = quiz[index];
+      $('progress').textContent = `문제 ${index + 1} / ${quiz.length}`;
+      $('question').textContent = item.question;
+      $('feedback').textContent = '';
+      $('next').hidden = true;
+      $('answers').replaceChildren();
+      item.answers.forEach((answer, choiceIndex) => {
+        const btn = document.createElement('button');
+        btn.className = 'choice';
+        btn.textContent = `${choiceIndex + 1}. ${answer}`;
+        btn.type = 'button';
+        btn.addEventListener('click', () => choose(choiceIndex));
+        $('answers').appendChild(btn);
+      });
+    }
+    function choose(selected) {
+      if (answered) return;
+      answered = true;
+      const item = quiz[index];
+      const right = selected === item.correct;
+      if (right) points++;
+      Array.from($('answers').children).forEach((button, i) => {
+        button.disabled = true;
+        if (i === item.correct) button.classList.add('good');
+        else if (i === selected) button.classList.add('bad');
+      });
+      $('feedback').textContent = `${right ? '✅ 정답입니다! ' : '❌ 아쉽습니다. '} ${item.explanation}`;
+      $('next').textContent = index === quiz.length - 1 ? '결과 보기' : '다음 문제 →';
+      $('next').hidden = false;
+      $('next').focus();
+    }
+    $('next').addEventListener('click', () => {
+      index++;
+      if (index < quiz.length) render();
+      else {
+        $('play').hidden = true;
+        $('result').hidden = false;
+        $('score').textContent = `${quiz.length}문제 중 ${points}문제 정답`;
+        $('retry').focus();
+      }
+    });
+    $('retry').addEventListener('click', () => {
+      index = 0; points = 0;
+      $('result').hidden = true;
+      $('play').hidden = false;
+      render();
+    });
+    render();
+  </script>
+</body>
+</html>
